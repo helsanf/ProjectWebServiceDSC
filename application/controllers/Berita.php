@@ -59,6 +59,8 @@ class Berita extends CI_Controller
     public function create_action() 
     {
         $this->_rules();
+        $foto = $this->upload_foto();
+        
 
         if ($this->form_validation->run() == FALSE) {
             $this->create();
@@ -67,7 +69,7 @@ class Berita extends CI_Controller
 		'judul_berita' => $this->input->post('judul_berita',TRUE),
 		'isi_berita' => $this->input->post('isi_berita',TRUE),
 		'tanggal' => $this->input->post('tanggal',TRUE),
-		'image' => $this->input->post('image',TRUE),
+		'image' => $foto['file_name'],
 	    );
 
             $this->Berita_model->insert($data);
@@ -100,15 +102,34 @@ class Berita extends CI_Controller
     public function update_action() 
     {
         $this->_rules();
+        $foto = $this->upload_foto();
+        
 
         if ($this->form_validation->run() == FALSE) {
             $this->update($this->input->post('id_berita', TRUE));
+        }
+        if(!empty($_FILES['image']['name'])){
+            foreach ($this->Berita_model->get_gambar($this->input->post('id_berita')) as $get){
+                if(file_exists('uploads/berita/'.$get->image)){
+                unlink('uploads/berita/'.$get->image);
+                }
+            }
+            $data = array(
+                'judul_berita' => $this->input->post('judul_berita',TRUE),
+                'isi_berita' => $this->input->post('isi_berita',TRUE),
+                'tanggal' => $this->input->post('tanggal',TRUE),
+                'image' =>  $foto['file_name'],
+            );
+        
+            $this->Acara_model->update($this->input->post('id_berita', TRUE), $data);
+            $this->session->set_flashdata('message', 'Update Record Success');
+            redirect(site_url('acara'));
         } else {
             $data = array(
-		'judul_berita' => $this->input->post('judul_berita',TRUE),
-		'isi_berita' => $this->input->post('isi_berita',TRUE),
-		'tanggal' => $this->input->post('tanggal',TRUE),
-		'image' => $this->input->post('image',TRUE),
+            'judul_berita' => $this->input->post('judul_berita',TRUE),
+            'isi_berita' => $this->input->post('isi_berita',TRUE),
+            'tanggal' => $this->input->post('tanggal',TRUE),
+            // 'image' => $this->input->post('image',TRUE),
 	    );
 
             $this->Berita_model->update($this->input->post('id_berita', TRUE), $data);
@@ -136,7 +157,7 @@ class Berita extends CI_Controller
 	$this->form_validation->set_rules('judul_berita', 'judul berita', 'trim|required');
 	$this->form_validation->set_rules('isi_berita', 'isi berita', 'trim|required');
 	$this->form_validation->set_rules('tanggal', 'tanggal', 'trim|required');
-	$this->form_validation->set_rules('image', 'image', 'trim|required');
+	// $this->form_validation->set_rules('image', 'image', 'trim|required');
 
 	$this->form_validation->set_rules('id_berita', 'id_berita', 'trim');
 	$this->form_validation->set_error_delimiters('<span class="text-danger">', '</span>');
@@ -198,6 +219,18 @@ class Berita extends CI_Controller
         );
         
         $this->load->view('berita/berita_doc',$data);
+    }
+
+    function upload_foto(){
+        $config['upload_path']          = 'uploads/berita/';
+        $config['allowed_types']        = 'gif|jpg|png|jpeg';
+        $config['encrypt_name'] = TRUE;
+        //$config['max_size']             = 100;
+        //$config['max_width']            = 1024;
+        //$config['max_height']           = 768;
+        $this->load->library('upload', $config);
+        $this->upload->do_upload('image');
+        return $this->upload->data();
     }
 
 }

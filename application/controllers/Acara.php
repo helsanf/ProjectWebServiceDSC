@@ -131,7 +131,7 @@ class Acara extends CI_Controller
 		'nama_acara' => $this->input->post('nama_acara',TRUE),
 		'keterangan' => $this->input->post('keterangan',TRUE),
 		'tanggal' => $this->input->post('tanggal',TRUE),
-		'image' => $this->input->post('image',TRUE),
+		// 'image' => $this->input->post('image',TRUE),
 	    );
 
             $this->Acara_model->update($this->input->post('id_acara', TRUE), $data);
