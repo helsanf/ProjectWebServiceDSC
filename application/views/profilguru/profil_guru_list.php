@@ -5,24 +5,23 @@
                 <div class="box box-warning box-solid">
     
                     <div class="box-header">
-                        <h3 class="box-title">DATA PROFIL GURU</h3>
+                        <h3 class="box-title">KELOLA DATA PROFIL_GURU</h3>
                     </div>
         
         <div class="box-body">
         <div style="padding-bottom: 10px;"'>
-        <?php echo anchor(site_url('profilguru/create'), '<i class="fa fa-wpforms" aria-hidden="true"></i> Tambah Data', 'class="btn btn-danger btn-sm"'); ?>
-		<?php echo anchor(site_url('profilguru/excel'), '<i class="fa fa-file-excel-o" aria-hidden="true"></i> Export Ms Excel', 'class="btn btn-success btn-sm"'); ?>
-		<?php echo anchor(site_url('profilguru/word'), '<i class="fa fa-file-word-o" aria-hidden="true"></i> Export Ms Word', 'class="btn btn-primary btn-sm"'); ?></div>
+        <?php echo anchor(site_url('profilguru/create'), '<i class="fa fa-wpforms" aria-hidden="true"></i> Tambah Data', 'class="btn btn-danger btn-sm"'); ?></div>
         <table class="table table-bordered table-striped" id="mytable">
             <thead>
                 <tr>
                     <th width="30px">No</th>
 		    <th>Nama Guru</th>
+		    <th>Email</th>
 		    <th>Mapel</th>
 		    <th>Kelas Ajar</th>
 		    <th>Jabatan</th>
 		    <th>Image</th>
-		    <th width="100px">Action</th>
+		    <th width="200px">Action</th>
                 </tr>
             </thead>
 	    
@@ -72,7 +71,7 @@
                         {
                             "data": "id_guru",
                             "orderable": false
-                        },{"data": "nama_guru"},{"data": "mapel"},{"data": "kelas_ajar"},{"data": "jabatan"},{"data": "image"},
+                        },{"data": "nama_guru"},{"data": "email"},{"data": "mapel"},{"data": "kelas_ajar"},{"data": "jabatan"},{"data": "image"},
                         {
                             "data" : "action",
                             "orderable": false,

@@ -24,11 +24,12 @@ function __construct($config ='rest'){
 
         if ($id_acara == '') {
             # code...
-            $acara['result']=$this->db->get('acara')->result();
+            $query = $this->db->query("select * from acara order by id_acara desc");
+            $acara['result']=$query->result();
         }else {
             
             $this->db->where('id_acara',$id_acara);
-            $acara['result']=$this->db->get('acara')->result();
+           $acara=$this->db->get('acara')->row();
         }
         $this->response($acara,REST_Controller::HTTP_OK);
     }

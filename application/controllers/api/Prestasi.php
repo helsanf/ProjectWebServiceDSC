@@ -36,15 +36,32 @@ class Prestasi extends REST_Controller {
         if($id_prestasi == ''){
         // $mahasiswa = array();
         // $mahasiswa['result'] = array();          
-        $prestasi['result'] = $this->db->get('prestasi')->result();
+        $prestasi['result']=$this->db->get('prestasi')->result();
+            
+        }else{
+            $this->db->where('id_prestasi',$id_prestasi);
+            $prestasi= $this->db->get('prestasi')->row();
+           
+        }
+        // $mahasiswa = $this->db->get('t_mahasiswa')->result();
+        
+        $this->response($prestasi , REST_Controller::HTTP_OK);
+    }
+
+    function limit_get(){
+        $id_prestasi = $this->get('id_prestasi');
+        
+
+        if($id_prestasi == ''){
+           
+        $query = $this->db->query("select * from prestasi order by id_prestasi desc limit 5 ");  
+        $prestasi['result'] = $query->result();
             
         }else{
             $this->db->where('id_prestasi',$id_prestasi);
             $prestasi['result'] = $this->db->get('prestasi')->result();
            
         }
-        // $mahasiswa = $this->db->get('t_mahasiswa')->result();
-        
         $this->response($prestasi , REST_Controller::HTTP_OK);
     }
    

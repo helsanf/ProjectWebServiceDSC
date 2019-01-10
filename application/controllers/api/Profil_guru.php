@@ -23,14 +23,21 @@ function __construct($config ='rest'){
         $id_guru = $this->get('id_guru');
 
         if ($id_guru == '') {
-            # code...
-            $guru['result']=$this->db->get('profil_guru')->result();
+            # code...'
+            $sql = "select * from profil_guru where jabatan not in('Kepala Sekolah')";
+            $guru['result']=$this->db->query($sql)->result();
         }else {
             
             $this->db->where('id_guru',$id_guru);
-            $guru['result']=$this->db->get('profil_guru')->result();
+            $guru=$this->db->get('profil_guru')->row();
         }
         $this->response($guru,REST_Controller::HTTP_OK);
+    }
+
+    function kepala_get(){
+        $sql = "select * from profil_guru where jabatan = 'Kepala Sekolah'";
+        $query = $this->db->query($sql)->row();
+        $this->response($query,REST_Controller::HTTP_OK);
     }
 }
      

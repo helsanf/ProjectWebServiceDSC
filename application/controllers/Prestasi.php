@@ -59,7 +59,9 @@ class Prestasi extends CI_Controller
     public function create_action() 
     {
         $this->_rules();
-
+        $foto = $this->upload_foto();
+        $judul =  $this->input->post('nama_prestasi',TRUE);
+        $topics = "helsan";
         if ($this->form_validation->run() == FALSE) {
             $this->create();
         } else {
@@ -67,13 +69,64 @@ class Prestasi extends CI_Controller
 		'nama_prestasi' => $this->input->post('nama_prestasi',TRUE),
 		'tanggal' => $this->input->post('tanggal',TRUE),
 		'keterangan' => $this->input->post('keterangan',TRUE),
-		'image' => $this->input->post('image',TRUE),
+		'image' => $foto['file_name'],
 	    );
 
-            $this->Prestasi_model->insert($data);
+           $id =  $this->Prestasi_model->insert($data);
+           $this->firebase($judul,$topics,$id);
+        //    print_r( $this->firebase($judul,$topics,$id));
+        //    die();
             $this->session->set_flashdata('message', 'Create Record Success 2');
             redirect(site_url('prestasi'));
         }
+    }
+
+    public function firebase($judul,$topics,$id_prestasi){
+        $res = array();
+        $data = array();        
+        $data['body'] = $judul;
+        $data['click_action'] = 'PRESTASIACTIVITY';
+       $data['id_prestasi'] = $id_prestasi;
+        
+        $fields = array(
+            'to' => '/topics/' . $topics,
+            // 'notification' => $res,
+            'data' => $data
+        );
+        echo json_encode($fields);
+        // die();
+           
+             // Set POST variables
+        $url = 'https://fcm.googleapis.com/fcm/send';
+        $server_key = "AAAAM0vtV_g:APA91bGiUb7_zSOBNMOeaUzAQ4VuhWSOCZqn35GspgTOD2fPYHYjr1vX6c5Fac_n5bWia_VxQqnnKcZ3LiSUpUKKATNF25tQZTQ2GQYktxrV8yU92Z-iqAGaU3Xp0P0xubSYn_-jhLMR";
+        
+        $headers = array(
+            'Authorization: key=' . $server_key,
+            'Content-Type: application/json'
+        );
+        // Open connection
+        $ch = curl_init();
+ 
+        // Set the url, number of POST vars, POST data
+        curl_setopt($ch, CURLOPT_URL, $url);
+ 
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+ 
+        // Disabling SSL Certificate support temporarly
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+ 
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+ 
+        // Execute post
+        $result = curl_exec($ch);
+        if ($result === FALSE) {
+            echo 'Curl failed: ' . curl_error($ch);
+        }
+ 
+        // Close connection
+        curl_close($ch);
     }
     
     public function update($id) 
@@ -100,15 +153,34 @@ class Prestasi extends CI_Controller
     public function update_action() 
     {
         $this->_rules();
-
+        $foto = $this->upload_foto();
+        
         if ($this->form_validation->run() == FALSE) {
             $this->update($this->input->post('id_prestasi', TRUE));
-        } else {
+        } 
+        if(!empty($_FILES['image']['name'])){
+            foreach ($this->Prestasi_model->get_gambar($this->input->post('id_prestasi')) as $get){
+                if(file_exists('uploads/prestasi/'.$get->image)){
+                unlink('uploads/prestasi/'.$get->image);
+                }
+            }
+            $data = array(
+                'nama_prestasi' => $this->input->post('nama_prestasi',TRUE),
+                'tanggal' => $this->input->post('tanggal',TRUE),
+                'keterangan' => $this->input->post('keterangan',TRUE),
+                'image' =>  $foto['file_name'],
+            );
+        
+            $this->Prestasi_model->update($this->input->post('id_prestasi', TRUE), $data);
+            $this->session->set_flashdata('message', 'Update Record Success');
+            redirect(site_url('prestasi'));
+        }
+        else {
             $data = array(
 		'nama_prestasi' => $this->input->post('nama_prestasi',TRUE),
 		'tanggal' => $this->input->post('tanggal',TRUE),
 		'keterangan' => $this->input->post('keterangan',TRUE),
-		'image' => $this->input->post('image',TRUE),
+		
 	    );
 
             $this->Prestasi_model->update($this->input->post('id_prestasi', TRUE), $data);
@@ -120,8 +192,10 @@ class Prestasi extends CI_Controller
     public function delete($id) 
     {
         $row = $this->Prestasi_model->get_by_id($id);
-
+        print_r($row);
+       
         if ($row) {
+            unlink('uploads/prestasi/'.$row->image);
             $this->Prestasi_model->delete($id);
             $this->session->set_flashdata('message', 'Delete Record Success');
             redirect(site_url('prestasi'));
@@ -136,7 +210,7 @@ class Prestasi extends CI_Controller
 	$this->form_validation->set_rules('nama_prestasi', 'nama prestasi', 'trim|required');
 	$this->form_validation->set_rules('tanggal', 'tanggal', 'trim|required');
 	$this->form_validation->set_rules('keterangan', 'keterangan', 'trim|required');
-	$this->form_validation->set_rules('image', 'image', 'trim|required');
+	
 
 	$this->form_validation->set_rules('id_prestasi', 'id_prestasi', 'trim');
 	$this->form_validation->set_error_delimiters('<span class="text-danger">', '</span>');
@@ -198,6 +272,18 @@ class Prestasi extends CI_Controller
         );
         
         $this->load->view('prestasi/prestasi_doc',$data);
+    }
+
+    function upload_foto(){
+        $config['upload_path']          = 'uploads/prestasi/';
+        $config['allowed_types']        = 'gif|jpg|png|jpeg';
+        $config['encrypt_name'] = TRUE;
+        //$config['max_size']             = 100;
+        //$config['max_width']            = 1024;
+        //$config['max_height']           = 768;
+        $this->load->library('upload', $config);
+        $this->upload->do_upload('image');
+        return $this->upload->data();
     }
 
 }

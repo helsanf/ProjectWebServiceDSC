@@ -57,14 +57,15 @@ class Ekstrakulikuler extends CI_Controller
     public function create_action() 
     {
         $this->_rules();
-
+        $foto = $this->upload_foto();
+        
         if ($this->form_validation->run() == FALSE) {
             $this->create();
         } else {
             $data = array(
 		'nama_ekstra' => $this->input->post('nama_ekstra',TRUE),
 		'keterangan' => $this->input->post('keterangan',TRUE),
-		'image' => $this->input->post('image',TRUE),
+		'image' => $foto['file_name'],
 	    );
 
             $this->Ekstrakulikuler_model->insert($data);
@@ -96,20 +97,38 @@ class Ekstrakulikuler extends CI_Controller
     public function update_action() 
     {
         $this->_rules();
-
+        $foto = $this->upload_foto();
+        
         if ($this->form_validation->run() == FALSE) {
             $this->update($this->input->post('id_ekstra', TRUE));
-        } else {
+        }
+            if(!empty($_FILES['image']['name'])){
+                foreach ($this->Ekstrakulikuler_model->get_gambar($this->input->post('id_ekstra')) as $get){
+                    if(file_exists('uploads/ekstrakulikuler/'.$get->image)){
+                    unlink('uploads/ekstrakulikuler/'.$get->image);
+                    }
+                }
+                $data = array(
+                    'nama_ekstra' => $this->input->post('nama_ekstra',TRUE),
+                    'keterangan' => $this->input->post('keterangan',TRUE),
+                    'image' => $foto['file_name'],
+                );
+            
+                $this->Ekstrakulikuler_model->update($this->input->post('id_ekstra', TRUE), $data);
+            $this->session->set_flashdata('message', 'Update Record Success');
+            redirect(site_url('ekstrakulikuler'));
+            } else {
             $data = array(
-		'nama_ekstra' => $this->input->post('nama_ekstra',TRUE),
-		'keterangan' => $this->input->post('keterangan',TRUE),
-		'image' => $this->input->post('image',TRUE),
+            'nama_ekstra' => $this->input->post('nama_ekstra',TRUE),
+            'keterangan' => $this->input->post('keterangan',TRUE),
+		
 	    );
 
             $this->Ekstrakulikuler_model->update($this->input->post('id_ekstra', TRUE), $data);
             $this->session->set_flashdata('message', 'Update Record Success');
             redirect(site_url('ekstrakulikuler'));
         }
+        
     }
     
     public function delete($id) 
@@ -130,10 +149,22 @@ class Ekstrakulikuler extends CI_Controller
     {
 	$this->form_validation->set_rules('nama_ekstra', 'nama ekstra', 'trim|required');
 	$this->form_validation->set_rules('keterangan', 'keterangan', 'trim|required');
-	$this->form_validation->set_rules('image', 'image', 'trim|required');
+	
 
 	$this->form_validation->set_rules('id_ekstra', 'id_ekstra', 'trim');
 	$this->form_validation->set_error_delimiters('<span class="text-danger">', '</span>');
+    }
+
+    function upload_foto(){
+        $config['upload_path']          = 'uploads/ekstrakulikuler/';
+        $config['allowed_types']        = 'gif|jpg|png|jpeg';
+        $config['encrypt_name'] = TRUE;
+        //$config['max_size']             = 100;
+        //$config['max_width']            = 1024;
+        //$config['max_height']           = 768;
+        $this->load->library('upload', $config);
+        $this->upload->do_upload('image');
+        return $this->upload->data();
     }
 
     public function excel()

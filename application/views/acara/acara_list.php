@@ -64,12 +64,21 @@
                     },
                     processing: true,
                     serverSide: true,
+                    responsive: true,
+                    
                     ajax: {"url": "acara/json", "type": "POST"},
                     columns: [
                         {
                             "data": "id_acara",
                             "orderable": false
-                        },{"data": "nama_acara"},{"data": "keterangan"},{"data": "tanggal"},{"data": "image"},
+                        },{"data": "nama_acara"},{"data": "keterangan"},{"data": "tanggal"},
+                        
+                        {"data": "image",
+                            "render": function(data, type, row) {
+                             return '<img src="<?php echo base_url(); ?>uploads/acara/'+data+'" width="50px" height="50px"/>';
+                             //RENDER berguna untuk merubah format ajax sesuai dengan kebutuhan
+                         }
+                        },
                         {
                             "data" : "action",
                             "orderable": false,

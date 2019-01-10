@@ -24,11 +24,11 @@ function __construct($config ='rest'){
 
         if ($id_gambar_fasilitas == '') {
             # code...
-            $gambar_fasilitas['result']=$this->db->get('gambar_fasilitas')->result();
+            $gambar_fasilitas=$this->db->get('gambar_fasilitas')->row();
         }else {
             
             $this->db->where('id_gambar_fasilitas',$id_gambar_fasilitas);
-            $gambar_fasilitas['result']=$this->db->get('gambar_fasilitas')->result();
+            $gambar_fasilitas=$this->db->get('gambar_fasilitas')->row();
         }
         $this->response($gambar_fasilitas,REST_Controller::HTTP_OK);
     }

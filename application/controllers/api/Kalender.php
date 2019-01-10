@@ -32,6 +32,34 @@ function __construct($config ='rest'){
         }
         $this->response($kalender,REST_Controller::HTTP_OK);
     }
+
+    function akademik_get(){
+        
+        
+        $sql = "select id_kalender , nama_bulan , tanggal , nama_kalender  from tbl_kalender inner join tbl_bulan on tbl_kalender.id_bulan = tbl_bulan.id_bulan where YEAR(tanggal) = year(now()) order by tanggal asc ";
+        $query = $this->db->query($sql)->result();
+        $data = array();
+        foreach($this->bulan_get() as $bulan ){
+             foreach($query as $kegiatan){
+                if($bulan == $kegiatan->nama_bulan){
+                    $data[$bulan][] = $kegiatan;
+                }
+             }
+        }
+        $this->response($data,REST_Controller::HTTP_OK);
+
+
+    }
+
+    private function bulan_get(){
+        $sql = "select nama_bulan from tbl_bulan order by id_bulan asc";
+        $query = $this->db->query($sql)->result();
+        $data = array();
+        foreach($query as $bulan){
+            $data[] = $bulan->nama_bulan;
+        }
+        return $data;
+    }
 }
      
  

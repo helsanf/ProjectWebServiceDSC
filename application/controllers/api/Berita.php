@@ -26,7 +26,8 @@ require APPPATH . 'libraries/Format.php';
 
         if ($id_berita == '') {
             # code...
-            $berita['result']=$this->db->get('berita')->result();
+            $query = $this->db->query("select * from berita order by id_berita desc");
+            $berita['result']=$query->result();
         }else {
             
             $this->db->where('id_berita',$id_berita);

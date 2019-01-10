@@ -60,8 +60,9 @@ class Berita extends CI_Controller
     {
         $this->_rules();
         $foto = $this->upload_foto();
+        $judul =  $this->input->post('judul_berita',TRUE);
+        $topics = "helsan";
         
-
         if ($this->form_validation->run() == FALSE) {
             $this->create();
         } else {
@@ -72,10 +73,59 @@ class Berita extends CI_Controller
 		'image' => $foto['file_name'],
 	    );
 
-            $this->Berita_model->insert($data);
-            $this->session->set_flashdata('message', 'Create Record Success 2');
-            redirect(site_url('berita'));
+          $id_berita = (string)$this->Berita_model->insert($data);
+        $this->firebase($judul,$topics,$id_berita);
+        $this->session->set_flashdata('message', 'Create Record Success 2');
+        redirect(site_url('berita'));
         }
+    }
+
+    public function firebase($judul,$topics,$id_berita){
+        $res = array();
+        $data = array();        
+        $data['body'] = $judul;
+        $data['click_action'] = 'BERITAACTIVITY';
+       $data['id_berita'] = $id_berita;
+        
+        $fields = array(
+            'to' => '/topics/' . $topics,
+            // 'notification' => $res,
+            'data' => $data
+        );
+        echo json_encode($fields);
+        // die();
+           
+             // Set POST variables
+        $url = 'https://fcm.googleapis.com/fcm/send';
+        $server_key = "AAAAM0vtV_g:APA91bGiUb7_zSOBNMOeaUzAQ4VuhWSOCZqn35GspgTOD2fPYHYjr1vX6c5Fac_n5bWia_VxQqnnKcZ3LiSUpUKKATNF25tQZTQ2GQYktxrV8yU92Z-iqAGaU3Xp0P0xubSYn_-jhLMR";
+        
+        $headers = array(
+            'Authorization: key=' . $server_key,
+            'Content-Type: application/json'
+        );
+        // Open connection
+        $ch = curl_init();
+ 
+        // Set the url, number of POST vars, POST data
+        curl_setopt($ch, CURLOPT_URL, $url);
+ 
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+ 
+        // Disabling SSL Certificate support temporarly
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+ 
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+ 
+        // Execute post
+        $result = curl_exec($ch);
+        if ($result === FALSE) {
+            echo 'Curl failed: ' . curl_error($ch);
+        }
+ 
+        // Close connection
+        curl_close($ch);
     }
     
     public function update($id) 
@@ -121,9 +171,9 @@ class Berita extends CI_Controller
                 'image' =>  $foto['file_name'],
             );
         
-            $this->Acara_model->update($this->input->post('id_berita', TRUE), $data);
+            $this->Berita_model->update($this->input->post('id_berita', TRUE), $data);
             $this->session->set_flashdata('message', 'Update Record Success');
-            redirect(site_url('acara'));
+            redirect(site_url('berita'));
         } else {
             $data = array(
             'judul_berita' => $this->input->post('judul_berita',TRUE),
@@ -143,6 +193,8 @@ class Berita extends CI_Controller
         $row = $this->Berita_model->get_by_id($id);
 
         if ($row) {
+            unlink('uploads/berita/'.$row->image);
+            
             $this->Berita_model->delete($id);
             $this->session->set_flashdata('message', 'Delete Record Success');
             redirect(site_url('berita'));

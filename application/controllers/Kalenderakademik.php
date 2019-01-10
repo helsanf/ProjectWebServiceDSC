@@ -16,7 +16,7 @@ class Kalenderakademik extends CI_Controller
 
     public function index()
     {
-        $this->template->load('template','kalenderakademik/kalender_list');
+        $this->template->load('template','kalenderakademik/tbl_kalender_list');
     } 
     
     public function json() {
@@ -30,10 +30,11 @@ class Kalenderakademik extends CI_Controller
         if ($row) {
             $data = array(
 		'id_kalender' => $row->id_kalender,
+		'nama_kalender' => $row->nama_kalender,
 		'tanggal' => $row->tanggal,
-		'nama_acara' => $row->nama_acara,
+		'id_bulan' => $row->id_bulan,
 	    );
-            $this->template->load('template','kalenderakademik/kalender_read', $data);
+            $this->template->load('template','kalenderakademik/tbl_kalender_read', $data);
         } else {
             $this->session->set_flashdata('message', 'Record Not Found');
             redirect(site_url('kalenderakademik'));
@@ -45,11 +46,13 @@ class Kalenderakademik extends CI_Controller
         $data = array(
             'button' => 'Create',
             'action' => site_url('kalenderakademik/create_action'),
+            'bulan' => $this->Kalender_model->get_bulan()->result(),
 	    'id_kalender' => set_value('id_kalender'),
+	    'nama_kalender' => set_value('nama_kalender'),
 	    'tanggal' => set_value('tanggal'),
-	    'nama_acara' => set_value('nama_acara'),
+	    // 'id_bulan' => set_value('id_bulan'),
 	);
-        $this->template->load('template','kalenderakademik/kalender_form', $data);
+        $this->template->load('template','kalenderakademik/tbl_kalender_form', $data);
     }
     
     public function create_action() 
@@ -60,8 +63,9 @@ class Kalenderakademik extends CI_Controller
             $this->create();
         } else {
             $data = array(
+		'nama_kalender' => $this->input->post('nama_kalender',TRUE),
 		'tanggal' => $this->input->post('tanggal',TRUE),
-		'nama_acara' => $this->input->post('nama_acara',TRUE),
+		'id_bulan' => $this->input->post('bulan',TRUE),
 	    );
 
             $this->Kalender_model->insert($data);
@@ -78,11 +82,13 @@ class Kalenderakademik extends CI_Controller
             $data = array(
                 'button' => 'Update',
                 'action' => site_url('kalenderakademik/update_action'),
-		'id_kalender' => set_value('id_kalender', $row->id_kalender),
+        'id_kalender' => set_value('id_kalender', $row->id_kalender),
+        'bulan' => $this->Kalender_model->get_bulan()->result(),
+		'nama_kalender' => set_value('nama_kalender', $row->nama_kalender),
 		'tanggal' => set_value('tanggal', $row->tanggal),
-		'nama_acara' => set_value('nama_acara', $row->nama_acara),
+		'id_bulan' => set_value('bulan', $row->id_bulan),
 	    );
-            $this->template->load('template','kalenderakademik/kalender_form', $data);
+            $this->template->load('template','kalenderakademik/tbl_kalender_form', $data);
         } else {
             $this->session->set_flashdata('message', 'Record Not Found');
             redirect(site_url('kalenderakademik'));
@@ -97,8 +103,9 @@ class Kalenderakademik extends CI_Controller
             $this->update($this->input->post('id_kalender', TRUE));
         } else {
             $data = array(
+		'nama_kalender' => $this->input->post('nama_kalender',TRUE),
 		'tanggal' => $this->input->post('tanggal',TRUE),
-		'nama_acara' => $this->input->post('nama_acara',TRUE),
+		'id_bulan' => $this->input->post('bulan',TRUE),
 	    );
 
             $this->Kalender_model->update($this->input->post('id_kalender', TRUE), $data);
@@ -123,66 +130,18 @@ class Kalenderakademik extends CI_Controller
 
     public function _rules() 
     {
+	$this->form_validation->set_rules('nama_kalender', 'nama kalender', 'trim|required');
 	$this->form_validation->set_rules('tanggal', 'tanggal', 'trim|required');
-	$this->form_validation->set_rules('nama_acara', 'nama acara', 'trim|required');
+	// $this->form_validation->set_rules('id_bulan', 'id bulan', 'trim|required');
 
 	$this->form_validation->set_rules('id_kalender', 'id_kalender', 'trim');
 	$this->form_validation->set_error_delimiters('<span class="text-danger">', '</span>');
     }
 
-    public function excel()
-    {
-        $this->load->helper('exportexcel');
-        $namaFile = "kalender.xls";
-        $judul = "kalender";
-        $tablehead = 0;
-        $tablebody = 1;
-        $nourut = 1;
-        //penulisan header
-        header("Pragma: public");
-        header("Expires: 0");
-        header("Cache-Control: must-revalidate, post-check=0,pre-check=0");
-        header("Content-Type: application/force-download");
-        header("Content-Type: application/octet-stream");
-        header("Content-Type: application/download");
-        header("Content-Disposition: attachment;filename=" . $namaFile . "");
-        header("Content-Transfer-Encoding: binary ");
-
-        xlsBOF();
-
-        $kolomhead = 0;
-        xlsWriteLabel($tablehead, $kolomhead++, "No");
-	xlsWriteLabel($tablehead, $kolomhead++, "Tanggal");
-	xlsWriteLabel($tablehead, $kolomhead++, "Nama Acara");
-
-	foreach ($this->Kalender_model->get_all() as $data) {
-            $kolombody = 0;
-
-            //ubah xlsWriteLabel menjadi xlsWriteNumber untuk kolom numeric
-            xlsWriteNumber($tablebody, $kolombody++, $nourut);
-	    xlsWriteLabel($tablebody, $kolombody++, $data->tanggal);
-	    xlsWriteLabel($tablebody, $kolombody++, $data->nama_acara);
-
-	    $tablebody++;
-            $nourut++;
-        }
-
-        xlsEOF();
-        exit();
-    }
-
-    public function word()
-    {
-        header("Content-type: application/vnd.ms-word");
-        header("Content-Disposition: attachment;Filename=kalender.doc");
-
-        $data = array(
-            'kalender_data' => $this->Kalender_model->get_all(),
-            'start' => 0
-        );
-        
-        $this->load->view('kalenderakademik/kalender_doc',$data);
-    }
-
 }
 
+/* End of file Kalenderakademik.php */
+/* Location: ./application/controllers/Kalenderakademik.php */
+/* Please DO NOT modify this information : */
+/* Generated by Harviacode Codeigniter CRUD Generator 2018-11-30 22:46:12 */
+/* http://harviacode.com */

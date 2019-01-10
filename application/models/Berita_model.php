@@ -73,6 +73,8 @@ class Berita_model extends CI_Model
     function insert($data)
     {
         $this->db->insert($this->table, $data);
+        $last_id = $this->db->insert_id();
+        return $last_id; 
     }
 
     // update data

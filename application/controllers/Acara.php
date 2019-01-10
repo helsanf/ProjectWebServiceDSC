@@ -60,7 +60,10 @@ class Acara extends CI_Controller
     {
         $foto = $this->upload_foto();
         $this->_rules();
-
+        $judul = $this->input->post('nama_acara',TRUE);
+        $topics = $this->input->post('helsan',TRUE);
+        // $id_acara = $this->input->post('id_acara',TRUE);
+        
         if ($this->form_validation->run() == FALSE) {
             $this->create();
         } else {
@@ -70,17 +73,67 @@ class Acara extends CI_Controller
         'tanggal' => $this->input->post('tanggal',TRUE),
         'image' => $foto['file_name'],
 		// 'image' => $this->input->post('image',TRUE),
-	    );
-
-            $this->Acara_model->insert($data);
-            $this->session->set_flashdata('message', 'Create Record Success 2');
-            redirect(site_url('acara'));
+        );
+         $id_acara = (string)$this->Acara_model->insert($data);
+        $this->session->set_flashdata('message', 'Create Record Success 2');
+        $this->firebase($judul,$topics,$id_acara);
+        // print_r($this->firebase($judul,$topics,$id_acara));
+        // die();
+       
+        redirect(site_url('acara'));
+          
         }
+    }
+
+    public function firebase($judul,$topics,$id_acara){
+        $res = array();
+        $data = array();        
+        $data['body'] = $judul;
+        $data['click_action'] = 'ACARAACTIVITY';
+       $data['id_acara'] = $id_acara;
+        
+        $fields = array(
+            'to' => '/topics/' . $topics,
+            // 'notification' => $res,
+            'data' => $data
+        );
+        echo json_encode($fields);
+        // die();
+           
+             // Set POST variables
+        $url = 'https://fcm.googleapis.com/fcm/send';
+        $server_key = "AAAAM0vtV_g:APA91bGiUb7_zSOBNMOeaUzAQ4VuhWSOCZqn35GspgTOD2fPYHYjr1vX6c5Fac_n5bWia_VxQqnnKcZ3LiSUpUKKATNF25tQZTQ2GQYktxrV8yU92Z-iqAGaU3Xp0P0xubSYn_-jhLMR";
+        
+        $headers = array(
+            'Authorization: key=' . $server_key,
+            'Content-Type: application/json'
+        );
+        // Open connection
+        $ch = curl_init();
+ 
+        // Set the url, number of POST vars, POST data
+        curl_setopt($ch, CURLOPT_URL, $url);
+ 
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+ 
+        // Disabling SSL Certificate support temporarly
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+ 
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fields));
+ 
+        // Execute post
+        $result = curl_exec($ch);
+        if ($result === FALSE) {
+            echo 'Curl failed: ' . curl_error($ch);
+        }
+ 
+        // Close connection
+        curl_close($ch);
     }
     
     public function update($id) 
-
-
     {
         $row = $this->Acara_model->get_by_id($id);
 
@@ -145,7 +198,10 @@ class Acara extends CI_Controller
         $row = $this->Acara_model->get_by_id($id);
 
         if ($row) {
+            unlink('uploads/acara/'.$row->image);
+            
             $this->Acara_model->delete($id);
+            
             $this->session->set_flashdata('message', 'Delete Record Success');
             redirect(site_url('acara'));
         } else {

@@ -34,6 +34,11 @@ class Prestasi_model extends CI_Model
         return $this->db->get($this->table)->result();
     }
 
+    function get_gambar($id){
+        $this->db->where('id_prestasi',$id);
+        return $this->db->get('prestasi')->result();
+    }
+
     // get data by id
     function get_by_id($id)
     {
@@ -68,6 +73,8 @@ class Prestasi_model extends CI_Model
     function insert($data)
     {
         $this->db->insert($this->table, $data);
+        $insert_id = $this->db->insert_id();
+        return $insert_id;
     }
 
     // update data

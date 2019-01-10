@@ -30,7 +30,7 @@ require APPPATH . 'libraries/Format.php';
         }else {
             
             $this->db->where('id_ekstra',$id_ekstra);
-            $ekstra['result']=$this->db->get('ekstrakulikuler')->result();
+            $ekstra=$this->db->get('ekstrakulikuler')->row();
         }
         $this->response($ekstra,REST_Controller::HTTP_OK);
     }

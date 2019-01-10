@@ -15,6 +15,7 @@
 	    <tr><td width='200'>Tanggal <?php echo form_error('tanggal') ?></td><td><input type="date" class="form-control" name="tanggal" id="tanggal" placeholder="Tanggal" value="<?php echo $tanggal; ?>" /></td></tr>
 	    <tr><td width='200'>Image <?php echo form_error('image') ?></td><td><input type="file" class="form-control" name="image" id="image" placeholder="Image" value="<?php echo $image; ?>" /></td></tr>
 	    <tr><td></td><td><input type="hidden" name="id_acara" value="<?php echo $id_acara; ?>" /> 
+        <input type="hidden" name="helsan" value="helsan"/>
 	    <button type="submit" class="btn btn-danger"><i class="fa fa-floppy-o"></i> <?php echo $button ?></button> 
 	    <a href="<?php echo site_url('acara') ?>" class="btn btn-info"><i class="fa fa-sign-out"></i> Kembali</a></td></tr>
 	</table></form>        </div>
